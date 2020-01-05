@@ -51,14 +51,14 @@ class MainActivity : WearableActivity() {
   override fun onPause() {
     Log.d(TAG, "PAUSE")
     super.onPause()
-//    unregisterReceiver(gattUpdateReceiver)
+    // unregisterReceiver(gattUpdateReceiver)
   }
 
 
   override fun onResume() {
     super.onResume()
     Log.d(TAG, "resume")
-//    start(mdevice)
+    // start(mdevice)
   }
 
   fun start(device: BluetoothDevice) {
@@ -127,8 +127,6 @@ class MainActivity : WearableActivity() {
             status.text = "CONNECTION LOST"
             status.setTextColor(Color.RED)
           }
-
-
         }
 
         ACTION_GATT_SERVICES_DISCOVERED -> {
@@ -157,7 +155,7 @@ class MainActivity : WearableActivity() {
 
       battery.text = "$b%"
       speed.text = "$v km/h"
-      temperature.text = if (t < 100)  "$t°C" else "-"
+      temperature.text = if (t < 100) "$t°C" else "-"
 
       speed.setBackgroundColor(if (v > 45) Color.RED else Color.BLACK)
       temperature.setTextColor(if (t < 50) Color.WHITE else Color.RED)
@@ -167,5 +165,4 @@ class MainActivity : WearableActivity() {
     val formatter = SimpleDateFormat.getTimeInstance() //or use getDateInstance()
     date.text = formatter.format(t)
   }
-
 }

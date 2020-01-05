@@ -1,6 +1,5 @@
 package com.nufeen.eucdata
 
-import android.util.Log
 import kotlin.math.*
 
 data class WheelData(
@@ -16,7 +15,6 @@ object decode {
   fun bt(x: String): Int {
     return Integer.parseInt(x, 16)
   }
-
 
   fun gotway(d: String): WheelData? {
     val H = d.split(" ")

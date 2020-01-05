@@ -2,16 +2,23 @@
 
 Wear OS app showing data from EUC.
 
-Current status: supports Gotway only.
+Current status: WIP, supports Gotway only.
 
 
-## WheelLog 
+## Decoding
+
+### WheelLog 
+
+Some of decoding EUC responses code taken from here:
 
 https://github.com/palachzzz/WheelLogAndroid/blob/master/app/src/main/java/com/cooper/wheellog/WheelData.java
 
-## Gotway response structure
+
+### Gotway response structure
 
 https://forum.electricunicycle.org/topic/2850-converting-the-msuper-board-to-bt-le/
+
+https://forum.electricunicycle.org/topic/870-gotwaykingsong-protocol-reverse-engineering/
 
 ```
 //    Packet String Type = 00
@@ -40,15 +47,13 @@ https://forum.electricunicycle.org/topic/2850-converting-the-msuper-board-to-bt-
 //    5a 5a 5a 5a = Footer
 ```
 
-https://forum.electricunicycle.org/topic/870-gotwaykingsong-protocol-reverse-engineering/
+## BLE Notes
 
-
-## Bluetooth low energy overview
+### Bluetooth low energy overview
 
 https://developer.android.com/guide/topics/connectivity/bluetooth-le
 
-
-## Note
+### Note
 
 https://stackoverflow.com/a/23660414
 
@@ -67,7 +72,7 @@ Here is the general pattern for how things need to work with BLE on Android:
 - Now you can write data to the characteristic. All of the characteristic and descriptor configuration has do be done before anything is written to any characteristic.
 
 
-## GOTWAY NIKOLA SERVICES: 
+## GOTWAY SERVICES: 
 
 00001800-0000-1000-8000-00805f9b34fb
 00001801-0000-1000-8000-00805f9b34fb
@@ -99,7 +104,7 @@ Descriptor: 00002901-0000-1000-8000-00805f9b34fb
 Descriptor: 00002902-0000-1000-8000-00805f9b34fb
 
 
-### WEAR OS PART
+## WEAR OS NOTES
 
 Really USEFUL one:
 

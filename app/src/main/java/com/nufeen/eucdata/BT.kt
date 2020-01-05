@@ -53,7 +53,7 @@ abstract class BT {
         }
 
         BluetoothAdapter.ACTION_DISCOVERY_FINISHED -> {
-//          report("DISCOVERY FINISHED")
+          // report("DISCOVERY FINISHED")
         }
 
         BluetoothDevice.ACTION_FOUND -> {
@@ -88,8 +88,4 @@ abstract class BT {
       unregisterReceiver(receiver)
     }
   }
-
-
-
 }
-
