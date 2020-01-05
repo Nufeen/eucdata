@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/boxInsetLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/black"
+    tools:context=".MainActivity"
+    tools:deviceIds="wear">
+
+    <TextView
+        android:id="@+id/battery"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="-"
+        android:textAlignment="center"
+        android:textSize="16sp"
+        android:textStyle="normal|bold"
+        app:layout_constraintBottom_toTopOf="@+id/speed"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/speed"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="-"
+        android:textAlignment="center"
+        android:textColor="@color/ambient_mode_text"
+        android:textSize="30sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@+id/temperature"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/battery" />
+
+    <TextView
+        android:id="@+id/temperature"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="-"
+        android:textAlignment="center"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@+id/status"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/speed" />
+
+    <TextView
+        android:id="@+id/status"
+        android:layout_width="111dp"
+        android:layout_height="26dp"
+        android:text="-"
+        android:textAlignment="center"
+        android:textSize="12sp"
+        android:textStyle="normal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/temperature" />
+
+    <TextView
+        android:id="@+id/date"
+        android:layout_width="91dp"
+        android:layout_height="30dp"
+        android:ems="10"
+        android:inputType="time"
+        app:layout_constraintBottom_toTopOf="@+id/temperature"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/speed" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
