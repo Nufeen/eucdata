@@ -8,6 +8,7 @@ import android.os.IBinder
 import android.support.wearable.activity.WearableActivity
 import android.util.Log
 import kotlinx.android.synthetic.main.activity_main.*
+import java.text.DateFormat.SHORT
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -22,19 +23,27 @@ const val ACTION_GATT_SERVICES_DISCOVERED =
 const val EXTRA_DATA = "com.example.bluetooth.le.EXTRA_DATA"
 
 class MainActivity : WearableActivity() {
-
   private var BLEService: BluetoothLeService? = null
   lateinit var mdevice: BluetoothDevice
+  lateinit var deviceName: String
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_main)
     setAmbientEnabled() // Enables Always-on
     bt.init(this)
+    bindEvents()
+  }
+
+  private fun bindEvents() {
+    lightswitch.setOnCheckedChangeListener { _, isChecked ->
+      updateLightMode(if (isChecked) 1 else 0)
+    }
   }
 
   private val bt = object : BT() {
     override fun onGotwayFound(device: BluetoothDevice) {
+      deviceName = device.name
       status.text = "Gotway found: $device"
       status.setTextColor(Color.YELLOW)
       start(device)
@@ -74,7 +83,6 @@ class MainActivity : WearableActivity() {
     bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE)
   }
 
-
   // Code to manage Service lifecycle.
   // https://github.com/objectsyndicate/Kotlin-BluetoothLeGatt
   val mServiceConnection = object : ServiceConnection {
@@ -86,7 +94,6 @@ class MainActivity : WearableActivity() {
 
     override fun onServiceDisconnected(componentName: ComponentName) {
       // TODO: Stable reconnection
-
       status.text = "DISCONNECTED"
       status.setTextColor(Color.RED)
 
@@ -110,7 +117,7 @@ class MainActivity : WearableActivity() {
     override fun onReceive(context: Context, intent: Intent) {
       when (intent.action) {
         ACTION_GATT_CONNECTED -> {
-          status.text = "$mdevice"
+          status.text = mdevice.name
           status.setTextColor(Color.GRAY)
         }
 
@@ -122,7 +129,8 @@ class MainActivity : WearableActivity() {
           status.setTextColor(Color.RED)
 
           if (mdevice != null) {
-            start(mdevice)
+            // start(mdevice)
+            startReceiver()
           } else {
             status.text = "CONNECTION LOST"
             status.setTextColor(Color.RED)
@@ -159,10 +167,29 @@ class MainActivity : WearableActivity() {
 
       speed.setBackgroundColor(if (v > 45) Color.RED else Color.BLACK)
       temperature.setTextColor(if (t < 50) Color.WHITE else Color.RED)
+      battery.setTextColor(if (b > 30) Color.WHITE else Color.RED)
     }
 
     val t = Calendar.getInstance().time
-    val formatter = SimpleDateFormat.getTimeInstance() //or use getDateInstance()
+    val formatter = SimpleDateFormat.getTimeInstance(SHORT)
     date.text = formatter.format(t)
+  }
+
+
+  fun updateLightMode(lightMode: Int) {
+    when (lightMode) {
+      0 -> {
+        BLEService!!.writeCharacteristic("E".toByteArray())
+        BLEService!!.writeCharacteristic("b".toByteArray())
+      }
+      1 -> {
+        BLEService!!.writeCharacteristic("Q".toByteArray())
+        BLEService!!.writeCharacteristic("b".toByteArray())
+      }
+      else -> {
+        BLEService!!.writeCharacteristic("T".toByteArray())
+        BLEService!!.writeCharacteristic("b".toByteArray())
+      }
+    }
   }
 }

@@ -8,6 +8,8 @@ import android.os.IBinder
 import android.util.Log
 import java.util.*
 
+const val GOTWAY_SERVICE_UUID = "0000ffe0-0000-1000-8000-00805f9b34fb"
+const val GOTWAY_READ_CHARACTER_UUID = "0000ffe1-0000-1000-8000-00805f9b34fb"
 
 class BluetoothLeService() : Service() {
   val getSupportedGattServices: List<BluetoothGattService>?
@@ -26,7 +28,6 @@ class BluetoothLeService() : Service() {
 
   override fun onBind(p0: Intent?): IBinder? {
     Log.d(TAG, "BIND SERVICE")
-
     return mBinder
   }
 
@@ -36,6 +37,17 @@ class BluetoothLeService() : Service() {
   fun init(device: BluetoothDevice) {
     Log.d(TAG, "INIT BLE SERVICE")
     bluetoothGatt = device.connectGatt(this, false, gattCallback)
+  }
+
+  fun writeCharacteristic(b: ByteArray) {
+    val service: BluetoothGattService =
+      bluetoothGatt!!.getService(UUID.fromString(GOTWAY_SERVICE_UUID))
+
+    val characteristic: BluetoothGattCharacteristic =
+      service.getCharacteristic(UUID.fromString(GOTWAY_READ_CHARACTER_UUID))
+
+    characteristic.setValue(b);
+    bluetoothGatt!!.writeCharacteristic(characteristic);
   }
 
   fun readCharacteristic(characteristic: BluetoothGattCharacteristic) {
