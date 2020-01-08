@@ -5,6 +5,8 @@ import android.content.*
 import android.graphics.Color
 import android.os.Bundle
 import android.os.IBinder
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.support.wearable.activity.WearableActivity
 import android.util.Log
 import kotlinx.android.synthetic.main.activity_main.*
@@ -26,6 +28,7 @@ class MainActivity : WearableActivity() {
   private var BLEService: BluetoothLeService? = null
   lateinit var mdevice: BluetoothDevice
   lateinit var deviceName: String
+  lateinit var vibratorService: Vibrator
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -33,6 +36,7 @@ class MainActivity : WearableActivity() {
     setAmbientEnabled() // Enables Always-on
     bt.init(this)
     bindEvents()
+    vibratorService = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
   }
 
   private fun bindEvents() {
@@ -67,6 +71,9 @@ class MainActivity : WearableActivity() {
   override fun onResume() {
     super.onResume()
     Log.d(TAG, "resume")
+    bt.init(this)
+
+//    onCreate()
     // start(mdevice)
   }
 
@@ -155,7 +162,7 @@ class MainActivity : WearableActivity() {
     }
   }
 
-
+  var t0 = Calendar.getInstance().getTimeInMillis()
   fun displayData(hex: String) {
     val data = decode.gotway(hex)
     if (data != null) {
@@ -168,6 +175,14 @@ class MainActivity : WearableActivity() {
       speed.setBackgroundColor(if (v > 45) Color.RED else Color.BLACK)
       temperature.setTextColor(if (t < 50) Color.WHITE else Color.RED)
       battery.setTextColor(if (b > 30) Color.WHITE else Color.RED)
+
+      val t1 = Calendar.getInstance().getTimeInMillis()
+      if (v > 45 && t1 - t0 > 300) {
+        t0 = t1
+        val s =
+          VibrationEffect.createWaveform(longArrayOf(0, 150), VibrationEffect.DEFAULT_AMPLITUDE)
+        vibratorService.vibrate(s)
+      }
     }
 
     val t = Calendar.getInstance().time
