@@ -1,6 +1,5 @@
 package com.nufeen.eucdata
 
-import android.util.Log
 import kotlin.math.*
 
 data class WheelData(
@@ -13,6 +12,8 @@ const val RATIO_GOTWAY = 0.875
 
 object decode {
   fun gotway(d: String): WheelData? {
+
+
     val H = d.split(" ") // hex values
     val I = H.map { Integer.parseInt(it, 16) } // int values
 

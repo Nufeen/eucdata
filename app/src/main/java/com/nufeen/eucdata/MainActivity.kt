@@ -9,34 +9,43 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.support.wearable.activity.WearableActivity
 import android.util.Log
+import android.view.WindowManager
+import androidx.wear.ambient.AmbientModeSupport
 import kotlinx.android.synthetic.main.activity_main.*
 import java.text.DateFormat.SHORT
 import java.text.SimpleDateFormat
 import java.util.*
 
-const val TAG = "UINFO"
-const val ACTION_GATT_CONNECTED = "com.example.bluetooth.le.ACTION_GATT_CONNECTED"
+const val ACTION_GATT_CONNECTED = "com.nufeen.eucdata.ACTION_GATT_CONNECTED"
+const val ACTION_GATT_DISCONNECTED = "com.nufeen.eucdataACTION_GATT_DISCONNECTED"
+const val ACTION_DATA_AVAILABLE = "com.nufeen.eucdata.ACTION_DATA_AVAILABLE"
+const val ACTION_GATT_SERVICES_DISCOVERED =  "com.nufeen.eucdata.ACTION_GATT_SERVICES_DISCOVERED"
+const val EXTRA_DATA = "com.nufeen.eucdata.EXTRA_DATA"
 const val STATE_CONNECTED = 2
 const val STATE_DISCONNECTED = 0
-const val ACTION_GATT_DISCONNECTED = "com.example.bluetooth.le.ACTION_GATT_DISCONNECTED"
-const val ACTION_DATA_AVAILABLE = "com.example.bluetooth.le.ACTION_DATA_AVAILABLE"
-const val ACTION_GATT_SERVICES_DISCOVERED =
-  "com.example.bluetooth.le.ACTION_GATT_SERVICES_DISCOVERED"
-const val EXTRA_DATA = "com.example.bluetooth.le.EXTRA_DATA"
+const val TAG = "DEBUG"
 
 class MainActivity : WearableActivity() {
+  lateinit var device: BluetoothDevice
   private var BLEService: BluetoothLeService? = null
-  lateinit var mdevice: BluetoothDevice
-  lateinit var deviceName: String
-  lateinit var vibratorService: Vibrator
+  private lateinit var vibratorService: Vibrator
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_main)
-    setAmbientEnabled() // Enables Always-on
+
+    // Enables Always-on
+    // should be managed by https://developer.android.com/training/wearables/apps/always-on
+    // but this works: https://developer.android.com/training/scheduling/wakelock.html#screen
+    window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+
+    // start searching for wheels around
     bt.init(this)
-    bindEvents()
+
+    // for reporting high speeds
     vibratorService = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+
+    bindEvents()
   }
 
   private fun bindEvents() {
@@ -47,71 +56,57 @@ class MainActivity : WearableActivity() {
 
   private val bt = object : BT() {
     override fun onGotwayFound(device: BluetoothDevice) {
-      deviceName = device.name
-      status.text = "Gotway found: $device"
+      status.text = "Wheel found: ${device.name}"
       status.setTextColor(Color.YELLOW)
       start(device)
     }
   }
 
   override fun onDestroy() {
-    Log.d(TAG, "DESTROY")
     super.onDestroy()
     bt.onDestroy(this)
     unregisterReceiver(gattUpdateReceiver)
   }
 
   override fun onPause() {
-    Log.d(TAG, "PAUSE")
+    Log.d("DEBUG", "PAUSE")
     super.onPause()
     // unregisterReceiver(gattUpdateReceiver)
   }
 
-
   override fun onResume() {
     super.onResume()
-    Log.d(TAG, "resume")
-    bt.init(this)
-
-//    onCreate()
-    // start(mdevice)
+    Log.d("DEBUG", "resume")
+    // bt.init(this)
   }
 
   fun start(device: BluetoothDevice) {
-    Log.d(TAG, "START")
-    Log.d(TAG, device.toString())
-
-    mdevice = device
+    this.device = device
     startReceiver()
     val intent = Intent(this@MainActivity, BluetoothLeService::class.java)
-
-    Log.d(TAG, "SERVICE BIND ATTEMPT")
     startService(intent)
-    bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE)
+    bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
   }
 
   // Code to manage Service lifecycle.
   // https://github.com/objectsyndicate/Kotlin-BluetoothLeGatt
-  val mServiceConnection = object : ServiceConnection {
+  val serviceConnection = object : ServiceConnection {
     override fun onServiceConnected(componentName: ComponentName, service: IBinder) {
       BLEService = (service as BluetoothLeService.LocalBinder).service
-      Log.d(TAG, "ON SERVICE CONNECT")
-      BLEService!!.init(mdevice)
+      Log.d("DEBUG", "ON SERVICE CONNECT CB")
+      BLEService!!.init(this@MainActivity.device)
     }
 
     override fun onServiceDisconnected(componentName: ComponentName) {
-      // TODO: Stable reconnection
-      status.text = "DISCONNECTED"
+      status.text = "ON SERVICE DISCONNECT CB"
       status.setTextColor(Color.RED)
-
-      if (mdevice != null) {
+      if (this@MainActivity.device != null) {
         startReceiver()
       }
     }
   }
 
   fun startReceiver() {
-    Log.d(TAG, "START RECIEVER")
     val filter = IntentFilter()
     filter.addAction(ACTION_GATT_CONNECTED)
     filter.addAction(ACTION_GATT_DISCONNECTED)
@@ -124,20 +119,16 @@ class MainActivity : WearableActivity() {
     override fun onReceive(context: Context, intent: Intent) {
       when (intent.action) {
         ACTION_GATT_CONNECTED -> {
-          status.text = mdevice.name
+          status.text = this@MainActivity.device.name
           status.setTextColor(Color.GRAY)
         }
 
         ACTION_GATT_DISCONNECTED -> {
-          // TODO: Stable reconnection
-          Log.d(TAG, "RECIEVER  ACTION_GATT_DISCONNECTED")
-
           status.text = "DISCONNECTED, RECONNECT"
           status.setTextColor(Color.RED)
 
-          if (mdevice != null) {
-            // start(mdevice)
-            startReceiver()
+          if (this@MainActivity.device != null) {
+            bt.init(this@MainActivity)
           } else {
             status.text = "CONNECTION LOST"
             status.setTextColor(Color.RED)
@@ -145,9 +136,8 @@ class MainActivity : WearableActivity() {
         }
 
         ACTION_GATT_SERVICES_DISCOVERED -> {
-          Log.d(TAG, "RECIEVER  ACTION_GATT_DISCOVERED")
-          val SS = BLEService?.getSupportedGattServices
-          for (service in SS!!) {
+          val services = BLEService?.getSupportedGattServices
+          for (service in services!!) {
             for (characteristic in service.characteristics) {
               BLEService?.readCharacteristic(characteristic)
             }
@@ -162,7 +152,7 @@ class MainActivity : WearableActivity() {
     }
   }
 
-  var t0 = Calendar.getInstance().getTimeInMillis()
+  private var t0 = Calendar.getInstance().timeInMillis
   fun displayData(hex: String) {
     val data = decode.gotway(hex)
     if (data != null) {
@@ -176,7 +166,7 @@ class MainActivity : WearableActivity() {
       temperature.setTextColor(if (t < 50) Color.WHITE else Color.RED)
       battery.setTextColor(if (b > 30) Color.WHITE else Color.RED)
 
-      val t1 = Calendar.getInstance().getTimeInMillis()
+      val t1 = Calendar.getInstance().timeInMillis
       if (v > 45 && t1 - t0 > 300) {
         t0 = t1
         val s =
